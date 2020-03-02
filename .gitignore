@@ -1,0 +1,21 @@
+# Never ever ever commit the vendor folder. https://media1.tenor.com/images/2a077aec57e04dc42bdb8233261a5fb7/tenor.gif?itemid=12042935
+/vendor/*
+
+# This is not so much of a rule. You can commit the .lock file, as it contains a fixed set of dependencies to help the
+# development team, but having a stable enough .json file to not have the .lock file commited should be a thing to aspire to.
+composer.lock
+
+# When storing sensitive information in a configuration file, you usually do not commit the actual file, but commit another
+# one, using the same name suffixed with .dist, in the same place as the one you are using. The .dist file will have the format
+# of the one you should be using, but each developer will set his own personal credentials, that way he doesn't have to share with
+# everyone, or rewrite the file each time he pulls.
+/tests/db_config.php
+
+# We don't commit IDE configuration, you're a jerk if you do that, let people use what they want, dammit
+/.idea/*
+
+# You really shouldn't ignore things from the /src folder, but I really don't want you to see what Andra & I wrote here :))
+/src/Test/*
+
+# Fuck caches and their invalidation
+.phpunit.result.cache

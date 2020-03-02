@@ -1,0 +1,14 @@
+{
+  "name": "really-orm-skeleton",
+  "description": "Really? ORM?",
+  "keywords": ["orm", "php", "pdo", "active record"],
+  "type": "library",
+  "license": "Apache-2.0",
+  "autoload": {
+    "psr-4": { "ReallyOrm\\": "src" }
+  },
+  "require": {
+    "ext-pdo": "*",
+    "phpunit/phpunit": "^8.0"
+  }
+}
