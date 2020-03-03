@@ -66,7 +66,7 @@ class Hydrator implements HydratorInterface
      */
     public function hydrateId(EntityInterface $entity, int $id): void
     {
-        /*$reflect = new \ReflectionClass($entity);
+        $reflect = new \ReflectionClass($entity);
         $properties = $reflect->getProperties();
         foreach ($properties as $property) {
             preg_match('/@Identifier\s(.*)$/m', $property->getDocComment(), $matches);
@@ -74,10 +74,10 @@ class Hydrator implements HydratorInterface
                 continue;
             }
             $property->setAccessible(true);
-            if (strcmp($matches[1], 'id')) {
+            if (strcmp($matches[1], 'id') === 0) {
                 $property->setValue($entity, $id);
             }
-        }*/
+        }
 
     }
 }
