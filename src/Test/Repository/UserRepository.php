@@ -34,14 +34,38 @@ class UserRepository extends AbstractRepository
      */
     public function findBy(array $filters, array $sorts, int $from, int $size): array
     {
-        // TODO: Implement findBy() method.
+        // filters  = [field_name => value]
+        // sorts = [field_name => direction]
+        // $from = from offset
+        // $size = to limit
+        $sql = 'SELECT * FROM user WHERE ';
+        foreach ($filters as $fieldName => $value) {
+            $sql .= $fieldName . ' =:' . $fieldName;
+            if (!end($filters)) {
+                $sql .= ' AND ';
+            }
+        }
+        $sql .= ' ORDER BY ';
+        foreach ($sorts as $fieldName => $direction) {
+            $sql .= ':'.$fieldName . ' ';
+        }
+        $sql .= ' LIMIT ' . $size . ' OFFSET ' . $from;
+        $dbStmt = $this->pdo->prepare($sql);
+        foreach ($filters as $fieldName => $value) {
+            $dbStmt->bindParam(':' . $fieldName, $value);
+        }
+        foreach ($sorts as $fieldName => $direction){
+            $dbStmt->bindParam(':'.$fieldName, $direction);
+        }
+        $dbStmt->execute();
+        $array = $dbStmt->fetchAll();
+        $objects = [];
+        foreach ($array as $row){
+           $objects[] = $this->hydrator->hydrate($this->entityName, $row);
+        }
+        return $objects;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function delete(EntityInterface $entity): bool
-    {
 
-    }
+
 }
