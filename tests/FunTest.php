@@ -51,7 +51,7 @@ class FunTest extends TestCase
     }
 
 
-    public function testCreateUser(): void
+    /*public function testCreateUser(): void
     {
         $user = new User();
         $user->setName('ciwawa');
@@ -60,13 +60,13 @@ class FunTest extends TestCase
         $result = $user->save();
 
         $this->assertEquals(true, $result);
-    }
+    }*/
 
     public function testUpdateUser(): void
     {
         $user = $this->userRepo->find(1);
-        $user->setEmail('other email');
-
+        $user->setEmail('ion@yahoo.com');
+        $this->repoManager->register($user);
         //echo $user->getId();
         //echo $user->getEmail();
 
@@ -81,5 +81,13 @@ class FunTest extends TestCase
         $user = $this->userRepo->find(1);
 
         $this->assertEquals(1, $user->getId());
+    }
+
+    public function testFindOneBy(): void
+    {
+        /** @var User $user */
+        $user = $this->userRepo->findOneBy(['email' => 'ana@gmail.com']);
+
+        $this->assertEquals(2, $user->getId());
     }
 }

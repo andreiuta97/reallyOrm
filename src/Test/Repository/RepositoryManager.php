@@ -10,13 +10,21 @@ use ReallyOrm\Repository\RepositoryManagerInterface;
 
 class RepositoryManager implements RepositoryManagerInterface
 {
+    private $repositories;
+
+    public function __construct(array $repositories = [])
+    {
+        foreach ($repositories as $repository){
+            $this->addRepository($repository);
+        }
+    }
 
     /**
      * @inheritDoc
      */
     public function register(EntityInterface $entity): void
     {
-        // TODO: Implement register() method.
+        $entity->setRepositoryManager($this);
     }
 
     /**
@@ -24,7 +32,8 @@ class RepositoryManager implements RepositoryManagerInterface
      */
     public function getRepository(string $className): RepositoryInterface
     {
-        // TODO: Implement getRepository() method.
+        //$res = $this->repositories[get_class($className)];
+        return $this->repositories[$className];
     }
 
     /**
@@ -32,6 +41,8 @@ class RepositoryManager implements RepositoryManagerInterface
      */
     public function addRepository(RepositoryInterface $repository): RepositoryManagerInterface
     {
-        // TODO: Implement addRepository() method.
+        $this->repositories[$repository->getEntityName()] = $repository;
+
+        return $this;
     }
 }

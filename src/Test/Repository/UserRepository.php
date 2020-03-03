@@ -11,29 +11,23 @@ use ReallyOrm\Test\Entity\User;
 
 class UserRepository extends AbstractRepository
 {
-
     /**
      * @inheritDoc
+     * @throws \ReflectionException
      */
-    public function find(int $id): ?EntityInterface
+    public function insertOnDuplicateKeyUpdate(EntityInterface $entity): bool
     {
-        $dbStmt = $this->pdo->prepare('SELECT * FROM user WHERE id = :id');
-        $dbStmt->bindParam(':id', $id, PDO::PARAM_INT);
-        $dbStmt->execute();
+        $data = $this->hydrator->extract($entity);
+        $sql = 'INSERT INTO user (id, name, email) VALUES (:id, :name, :email) ' .
+            'ON DUPLICATE KEY UPDATE name = VALUES(name), email = VALUES(email)';
+        $dbStmt = $this->pdo->prepare($sql);
+        $dbStmt->bindParam(':id', $data['id'], PDO::PARAM_INT);
+        $dbStmt->bindParam(':name', $data['name'], PDO::PARAM_STR);
+        $dbStmt->bindParam(':email', $data['email'], PDO::PARAM_STR);
 
-        $row = $dbStmt->fetch();
-        $user = $this->hydrator->hydrate(User::class, $row);
-
-        return $user;
+        return $dbStmt->execute();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function findOneBy(array $filters): ?EntityInterface
-    {
-        // TODO: Implement findOneBy() method.
-    }
 
     /**
      * @inheritDoc
@@ -46,27 +40,8 @@ class UserRepository extends AbstractRepository
     /**
      * @inheritDoc
      */
-    public function insertOnDuplicateKeyUpdate(EntityInterface $entity): bool
-    {
-        /*$dbStmt = $this->pdo->prepare('SELECT * FROM user WHERE id = :id');
-        $dbStmt->bindParam(':id', $id, PDO::PARAM_INT);
-        $dbStmt->execute();
-        $row = $dbStmt->fetch();
-
-
-        $data = $hydrator->extract($user); // results in something like ['id' => 1, 'name' => 'Product ABC']
-        // prepare statement and execute it. execution result will be a boolean.
-        $this->hydrator->hydrateId($user, $this->pdo->lastInsertId());
-
-        return $result;*/
-
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function delete(EntityInterface $entity): bool
     {
-        // TODO: Implement delete() method.
+
     }
 }
