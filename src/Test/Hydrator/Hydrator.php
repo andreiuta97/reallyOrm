@@ -4,9 +4,24 @@ namespace ReallyOrm\Test\Hydrator;
 
 use ReallyOrm\Entity\EntityInterface;
 use ReallyOrm\Hydrator\HydratorInterface;
+use ReallyOrm\Repository\RepositoryManagerInterface;
 
 class Hydrator implements HydratorInterface
 {
+    /**
+     * @var RepositoryManagerInterface
+     */
+    private $repoManager;
+
+    /**
+     * Hydrator constructor.
+     * @param RepositoryManagerInterface $repoManager
+     */
+    public function __construct(RepositoryManagerInterface $repoManager)
+    {
+        $this->repoManager = $repoManager;
+    }
+
     /**
      * @inheritDoc
      * @throws \ReflectionException
@@ -18,19 +33,16 @@ class Hydrator implements HydratorInterface
          * @var EntityInterface $object
          */
         $object = $reflect->newInstanceWithoutConstructor();
-        //get props from reflection
         $properties = $reflect->getProperties();
-        //foreach prop get doc block (orm)
         foreach ($properties as $property) {
             preg_match('/@ORM\s(.*)$/m', $property->getDocComment(), $matches);
             if (!isset($matches[1])) {
                 continue;
             }
-            //set property accessible
             $property->setAccessible(true);
-            //set value din data
             $property->setValue($object, $data[$matches[1]]);
         }
+        $this->repoManager->register($object);
 
         return $object;
     }
@@ -42,18 +54,14 @@ class Hydrator implements HydratorInterface
     public function extract(EntityInterface $object): array
     {
         $reflect = new \ReflectionClass($object);
-        //get props from reflection
         $properties = $reflect->getProperties();
         $data = [];
-        //foreach prop get doc block (orm)
         foreach ($properties as $property) {
             preg_match('/@ORM\s(.*)$/m', $property->getDocComment(), $matches);
             if (!isset($matches[1])) {
                 continue;
             }
-            //set property accessible
             $property->setAccessible(true);
-            //set value din data
             $data[$matches[1]] = $property->getValue($object);
         }
 
@@ -78,6 +86,5 @@ class Hydrator implements HydratorInterface
                 $property->setValue($entity, $id);
             }
         }
-
     }
 }

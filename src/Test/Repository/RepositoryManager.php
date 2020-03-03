@@ -10,8 +10,17 @@ use ReallyOrm\Repository\RepositoryManagerInterface;
 
 class RepositoryManager implements RepositoryManagerInterface
 {
+    /**
+     * @var array
+     */
     private $repositories;
 
+    /**
+     * Adds each repository to the repositories array.
+     *
+     * RepositoryManager constructor.
+     * @param array $repositories
+     */
     public function __construct(array $repositories = [])
     {
         foreach ($repositories as $repository){
@@ -32,7 +41,6 @@ class RepositoryManager implements RepositoryManagerInterface
      */
     public function getRepository(string $className): RepositoryInterface
     {
-        //$res = $this->repositories[get_class($className)];
         return $this->repositories[$className];
     }
 

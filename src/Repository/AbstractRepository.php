@@ -55,7 +55,10 @@ abstract class AbstractRepository implements RepositoryInterface
         $this->hydrator = $hydrator;
     }
 
-
+    /**
+     * @param int $id
+     * @return EntityInterface|null
+     */
     public function find(int $id): ?EntityInterface
     {
         $dbStmt = $this->pdo->prepare('SELECT * FROM ' . $this->getTableName() . ' WHERE id = :id');
@@ -63,11 +66,15 @@ abstract class AbstractRepository implements RepositoryInterface
         $dbStmt->execute();
         $row = $dbStmt->fetch();
 
-        return $this->hydrator->hydrate($this->entityName, $row);
+        $entity = $this->hydrator->hydrate($this->entityName, $row);
+        $this->hydrator->hydrateId($entity, $row['id']);
+        return $entity;
     }
 
     /**
-     * @inheritDoc
+     * @param array $filters
+     *
+     * @return EntityInterface|null
      */
     public function findOneBy(array $filters): ?EntityInterface
     {
@@ -87,11 +94,18 @@ abstract class AbstractRepository implements RepositoryInterface
         $dbStmt->execute();
         $row = $dbStmt->fetch();
 
-        return $this->hydrator->hydrate($this->entityName, $row);
+        $entity = $this->hydrator->hydrate($this->entityName, $row);
+        $this->hydrator->hydrateId($entity, $row['id']);
+        return $entity;
     }
 
     /**
-     * @inheritDoc
+     * @param array $filters
+     * @param array $sorts
+     * @param int $from
+     * @param int $size
+     *
+     * @return array
      */
     public function findBy(array $filters, array $sorts, int $from, int $size): array
     {
@@ -99,7 +113,7 @@ abstract class AbstractRepository implements RepositoryInterface
         // sorts = [field_name => direction]
         // $from = from offset
         // $size = to limit
-        $sql = 'SELECT * FROM '.$this->getTableName().' WHERE ';
+        $sql = 'SELECT * FROM ' . $this->getTableName() . ' WHERE ';
         foreach ($filters as $fieldName => $value) {
             $sql .= $fieldName . ' =:' . $fieldName;
             if (!end($filters)) {
@@ -108,24 +122,53 @@ abstract class AbstractRepository implements RepositoryInterface
         }
         $sql .= ' ORDER BY ';
         foreach ($sorts as $fieldName => $direction) {
-            $sql .= ':'.$fieldName . ' ';
+            $sql .= ':' . $fieldName . ' ' . $direction;
         }
         $sql .= ' LIMIT ' . $size . ' OFFSET ' . $from;
         $dbStmt = $this->pdo->prepare($sql);
         foreach ($filters as $fieldName => $value) {
             $dbStmt->bindParam(':' . $fieldName, $value);
         }
-        foreach ($sorts as $fieldName => $direction){
-            $dbStmt->bindParam(':'.$fieldName, $direction);
+        foreach ($sorts as $fieldName => $direction) {
+            $dbStmt->bindParam(':' . $fieldName, $direction);
         }
         $dbStmt->execute();
         $array = $dbStmt->fetchAll();
         $objects = [];
-        foreach ($array as $row){
-            $objects[] = $this->hydrator->hydrate($this->entityName, $row);
+        foreach ($array as $row) {
+            $object = $this->hydrator->hydrate($this->entityName, $row);
+            $this->hydrator->hydrateId($object, $row['id']);
+            $objects[] = $object;
         }
         return $objects;
     }
+
+    /**
+     * @param EntityInterface $entity
+     *
+     * @return bool
+     */
+    public function insertOnDuplicateKeyUpdate(EntityInterface $entity): bool
+    {
+        $data = $this->hydrator->extract($entity);
+        $columns = implode(", ", array_keys($data));
+        $values =implode(", :", array_keys($data));
+        $sql = 'INSERT INTO ' . $this->getTableName() . ' (' . $columns . ') VALUES (:'
+            . $values . ') ON DUPLICATE KEY UPDATE ';
+        foreach (array_keys($data) as $dataKey) {
+            $sql .= $dataKey . ' = VALUES(' . $dataKey . '), ';
+        }
+        $sql = substr($sql, 0, -2);
+        $dbStmt = $this->pdo->prepare($sql);
+        foreach ($data as $columnName => $value) {
+            $dbStmt->bindParam(':' . $columnName, $value);
+        }
+        $result = $dbStmt->execute();
+        $this->hydrator->hydrateId($entity, $this->pdo->lastInsertId());
+
+        return $result;
+    }
+
 
     /**
      * Returns the name of the associated entity.
@@ -150,10 +193,14 @@ abstract class AbstractRepository implements RepositoryInterface
         return strtolower($matches[1]);
     }
 
+    /**
+     * @param EntityInterface $entity
+     * @return bool
+     */
     public function delete(EntityInterface $entity): bool
     {
         $data = $this->hydrator->extract($entity);
-        $sql='DELETE FROM '.$this->getTableName().' WHERE id = :id';
+        $sql = 'DELETE FROM ' . $this->getTableName() . ' WHERE id = :id';
         $dbStmt = $this->pdo->prepare($sql);
         $dbStmt->bindParam(':id', $data['id'], PDO::PARAM_INT);
 

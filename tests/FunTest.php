@@ -45,13 +45,14 @@ class FunTest extends TestCase
         ];
 
         $this->pdo = new PDO($dsn, $config['user'], $config['pass'], $options);
-        $this->hydrator = new Hydrator();
+        $this->repoManager = new RepositoryManager();
+        $this->hydrator = new Hydrator($this->repoManager);
         $this->userRepo = new UserRepository($this->pdo, User::class, $this->hydrator);
-        $this->repoManager = new RepositoryManager([$this->userRepo]);
+        $this->repoManager->addRepository($this->userRepo);
     }
 
 
-    /*public function testCreateUser(): void
+    public function testCreateUser(): void
     {
         $user = new User();
         $user->setName('ciwawa');
@@ -60,13 +61,13 @@ class FunTest extends TestCase
         $result = $user->save();
 
         $this->assertEquals(true, $result);
-    }*/
+        $this->assertNotEmpty($user->getId());
+    }
 
     public function testUpdateUser(): void
     {
         $user = $this->userRepo->find(1);
-        $user->setEmail('ion@yahoo.com');
-        $this->repoManager->register($user);
+        $user->setEmail('mail');
         //echo $user->getId();
         //echo $user->getEmail();
 
@@ -94,17 +95,16 @@ class FunTest extends TestCase
     public function testFindBy(): void
     {
         /** @var User $user */
-        $user = $this->userRepo->findBy(['name' => 'ciwawa'], ['email'=>'ASC'], 2,4);
+        $users = $this->userRepo->findBy(['name' => 'ciwawa'], ['email'=>'ASC'], 2,4);
         //var_dump($user);
-        $this->assertEquals(5, $user[0]->getId());
+        $this->assertEquals('ciwawa', $users[0]->getName());
     }
 
 
     public function testDelete(): void
     {
         /** @var User $user */
-        $user = $this->userRepo->find(7);
-        $this->repoManager->register($user);
+        $user = $this->userRepo->find(10);
         $delete = $this->userRepo->delete($user);
 
         $this->assertEquals(true, $delete);
