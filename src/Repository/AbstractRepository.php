@@ -113,4 +113,14 @@ abstract class AbstractRepository implements RepositoryInterface
         return strtolower($matches[1]);
     }
 
+    public function delete(EntityInterface $entity): bool
+    {
+        $data = $this->hydrator->extract($entity);
+        $sql='DELETE FROM '.$this->getTableName().' WHERE id = :id';
+        $dbStmt = $this->pdo->prepare($sql);
+        $dbStmt->bindParam(':id', $data['id'], PDO::PARAM_INT);
+
+        return $dbStmt->execute();
+    }
+
 }
