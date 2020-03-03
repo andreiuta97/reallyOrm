@@ -65,9 +65,9 @@ abstract class AbstractRepository implements RepositoryInterface
         $dbStmt->bindParam(':id', $id, PDO::PARAM_INT);
         $dbStmt->execute();
         $row = $dbStmt->fetch();
-
         $entity = $this->hydrator->hydrate($this->entityName, $row);
         $this->hydrator->hydrateId($entity, $row['id']);
+
         return $entity;
     }
 
@@ -93,9 +93,9 @@ abstract class AbstractRepository implements RepositoryInterface
         }
         $dbStmt->execute();
         $row = $dbStmt->fetch();
-
         $entity = $this->hydrator->hydrate($this->entityName, $row);
         $this->hydrator->hydrateId($entity, $row['id']);
+
         return $entity;
     }
 
@@ -140,6 +140,7 @@ abstract class AbstractRepository implements RepositoryInterface
             $this->hydrator->hydrateId($object, $row['id']);
             $objects[] = $object;
         }
+
         return $objects;
     }
 
