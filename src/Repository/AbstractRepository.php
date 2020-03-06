@@ -81,14 +81,13 @@ abstract class AbstractRepository implements RepositoryInterface
         // filters  = [field_name => value]
         $sql = 'SELECT * FROM ' . $this->getTableName() . ' WHERE ';
         foreach ($filters as $fieldName => $value) {
-            $sql .= $fieldName . ' =:' . $fieldName;
-            if (!end($filters)) {
-                $sql .= ' AND ';
-            }
+            $sql .= $fieldName . ' = :' . $fieldName . ' AND ';
         }
+        $sql = substr($sql, 0, -5);
         $sql .= ' LIMIT 1';
+
         $dbStmt = $this->pdo->prepare($sql);
-        foreach ($filters as $fieldName => $value) {
+        foreach ($filters as $fieldName => &$value) {
             $dbStmt->bindParam(':' . $fieldName, $value);
         }
         $dbStmt->execute();
