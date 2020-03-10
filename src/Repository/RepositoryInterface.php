@@ -41,7 +41,7 @@ interface RepositoryInterface
      *
      * @return EntityInterface[]
      */
-    public function findBy(array $filters, array $sorts, int $from, int $size): array;
+    public function findBy(array $filters = [], array $sorts = [], int $from = 0, int $size = 10): array;
 
     /**
      * Inserts new entity or updates existing entity if a duplicate error occurs.
