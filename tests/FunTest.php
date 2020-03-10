@@ -84,21 +84,21 @@ class FunTest extends TestCase
 //        $this->assertEquals(1, $user->getId());
 //    }
 
-    public function testFindOneBy(): void
-    {
-        /** @var User $user */
-        $user = $this->userRepo->findOneBy(['email' => 'ana@gmail.com', 'name' => 'Ana']);
-
-        $this->assertEquals(2, $user->getId());
-    }
-
-//    public function testFindBy(): void
+//    public function testFindOneBy(): void
 //    {
 //        /** @var User $user */
-//        $users = $this->userRepo->findBy(['name' => 'ciwawa'], ['email'=>'ASC'], 2,4);
-//        //var_dump($user);
-//        $this->assertEquals('ciwawa', $users[0]->getName());
+//        $user = $this->userRepo->findOneBy(['email' => 'ana@gmail.com', 'name' => 'Ana']);
+//
+//        $this->assertEquals(2, $user->getId());
 //    }
+
+    public function testFindBy(): void
+    {
+        /** @var User $user */
+        $users = $this->userRepo->findBy();
+        //var_dump($user);
+        $this->assertCount(10, $users);
+    }
 //
 //
 //    public function testDelete(): void

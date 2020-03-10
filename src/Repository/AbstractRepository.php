@@ -106,22 +106,28 @@ abstract class AbstractRepository implements RepositoryInterface
      *
      * @return array
      */
-    public function findBy(array $filters, array $sorts, int $from, int $size): array
+    public function findBy(array $filters = [], array $sorts = [], int $from = 0, int $size = 10): array
     {
         // filters  = [field_name => value]
         // sorts = [field_name => direction]
         // $from = from offset
         // $size = to limit
-        $sql = 'SELECT * FROM ' . $this->getTableName() . ' WHERE ';
-        foreach ($filters as $fieldName => $value) {
-            $sql .= $fieldName . ' =:' . $fieldName;
-            if (!end($filters)) {
-                $sql .= ' AND ';
+        $sql = 'SELECT * FROM ' . $this->getTableName();
+
+        if (!empty($filters)) {
+            $sql .= ' WHERE ';
+            foreach ($filters as $fieldName => $value) {
+                $sql .= $fieldName . ' =:' . $fieldName;
+                if (!end($filters)) {
+                    $sql .= ' AND ';
+                }
             }
         }
-        $sql .= ' ORDER BY ';
-        foreach ($sorts as $fieldName => $direction) {
-            $sql .= ':' . $fieldName . ' ' . $direction;
+        if(!empty($sorts)) {
+            $sql .= ' ORDER BY ';
+            foreach ($sorts as $fieldName => $direction) {
+                $sql .= ':' . $fieldName . ' ' . $direction;
+            }
         }
         $sql .= ' LIMIT ' . $size . ' OFFSET ' . $from;
         $dbStmt = $this->pdo->prepare($sql);
@@ -152,7 +158,7 @@ abstract class AbstractRepository implements RepositoryInterface
     {
         $data = $this->hydrator->extract($entity);
         $columns = implode(", ", array_keys($data));
-        $values =implode(", :", array_keys($data));
+        $values = implode(", :", array_keys($data));
         $sql = 'INSERT INTO ' . $this->getTableName() . ' (' . $columns . ') VALUES (:'
             . $values . ') ON DUPLICATE KEY UPDATE ';
         foreach (array_keys($data) as $dataKey) {
@@ -168,7 +174,6 @@ abstract class AbstractRepository implements RepositoryInterface
 
         return $result;
     }
-
 
     /**
      * Returns the name of the associated entity.
