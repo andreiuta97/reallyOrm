@@ -144,11 +144,14 @@ abstract class AbstractRepository implements RepositoryInterface
         $sql = 'INSERT INTO ' . $this->getTableName() . ' (' . $columns . ') VALUES (:'
             . $values . ') ON DUPLICATE KEY UPDATE ';
         foreach (array_keys($data) as $dataKey) {
+            if ($dataKey === 'id') {
+                continue;
+            }
             $sql .= $dataKey . ' = VALUES(' . $dataKey . '), ';
         }
         $sql = substr($sql, 0, -2);
         $dbStmt = $this->pdo->prepare($sql);
-        foreach ($data as $columnName => $value) {
+        foreach ($data as $columnName => &$value) {
             $dbStmt->bindParam(':' . $columnName, $value);
         }
         $result = $dbStmt->execute();
