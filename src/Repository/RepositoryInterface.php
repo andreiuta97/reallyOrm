@@ -67,4 +67,6 @@ interface RepositoryInterface
      * @return string
      */
     public function getEntityName(): string;
+
+    public function getTableName(): string;
 }
