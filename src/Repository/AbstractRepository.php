@@ -4,6 +4,7 @@ namespace ReallyOrm\Repository;
 
 use PDO;
 use phpDocumentor\Reflection\Types\This;
+use ReallyOrm\Criteria\Criteria;
 use ReallyOrm\Entity\EntityInterface;
 use ReallyOrm\Hydrator\HydratorInterface;
 
@@ -106,7 +107,7 @@ abstract class AbstractRepository implements RepositoryInterface
      *
      * @return array
      */
-    public function findBy(array $filters = [], array $sorts = [], int $from = 0, int $size = 10): array
+    public function findBy(Criteria $criteria): array
     {
         // filters  = [field_name => value]
         // sorts = [field_name => direction]
@@ -114,29 +115,10 @@ abstract class AbstractRepository implements RepositoryInterface
         // $size = to limit
         $sql = 'SELECT * FROM ' . $this->getTableName();
 
-        if (!empty($filters)) {
-            $sql .= ' WHERE ';
-            foreach ($filters as $fieldName => $value) {
-                $sql .= $fieldName . ' =:' . $fieldName;
-                if (!end($filters)) {
-                    $sql .= ' AND ';
-                }
-            }
-        }
-        if(!empty($sorts)) {
-            $sql .= ' ORDER BY ';
-            foreach ($sorts as $fieldName => $direction) {
-                $sql .= ':' . $fieldName . ' ' . $direction;
-            }
-        }
-        $sql .= ' LIMIT ' . $size . ' OFFSET ' . $from;
+        $sql .= $criteria->toQuery();
+
         $dbStmt = $this->pdo->prepare($sql);
-        foreach ($filters as $fieldName => $value) {
-            $dbStmt->bindParam(':' . $fieldName, $value);
-        }
-        foreach ($sorts as $fieldName => $direction) {
-            $dbStmt->bindParam(':' . $fieldName, $direction);
-        }
+        $criteria->bindParamsToStatement($dbStmt);
         $dbStmt->execute();
         $array = $dbStmt->fetchAll();
         $objects = [];

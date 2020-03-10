@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ReallyOrm\Repository;
 
+use ReallyOrm\Criteria\Criteria;
 use ReallyOrm\Entity\EntityInterface;
 
 /**
@@ -34,14 +35,11 @@ interface RepositoryInterface
     /**
      * Returns a filtered, sorted, and paginated set of entities.
      *
-     * @param array $filters   Format [field_name => value]
-     * @param array $sorts     Format [field_name => direction]
-     * @param int   $from      From/offset
-     * @param int   $size      Size/limit
+     * @param Criteria $criteria
      *
      * @return EntityInterface[]
      */
-    public function findBy(array $filters = [], array $sorts = [], int $from = 0, int $size = 10): array;
+    public function findBy(Criteria $criteria): array;
 
     /**
      * Inserts new entity or updates existing entity if a duplicate error occurs.

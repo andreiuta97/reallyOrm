@@ -95,7 +95,8 @@ class FunTest extends TestCase
     public function testFindBy(): void
     {
         /** @var User $user */
-        $users = $this->userRepo->findBy();
+        $criteria = new ReallyOrm\Criteria\Criteria();
+        $users = $this->userRepo->findBy($criteria);
         //var_dump($user);
         $this->assertCount(10, $users);
     }
