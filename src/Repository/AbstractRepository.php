@@ -155,10 +155,13 @@ abstract class AbstractRepository implements RepositoryInterface
             $dbStmt->bindParam(':' . $columnName, $value);
         }
         $result = $dbStmt->execute();
-        $this->hydrator->hydrateId($entity, $this->pdo->lastInsertId());
+        if (!$entity->getId()) {
+            $this->hydrator->hydrateId($entity, $this->pdo->lastInsertId());
+        }
 
         return $result;
     }
+
 
     /**
      * Returns the name of the associated entity.
