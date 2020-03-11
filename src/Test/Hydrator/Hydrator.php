@@ -58,11 +58,17 @@ class Hydrator implements HydratorInterface
         $data = [];
         foreach ($properties as $property) {
             preg_match('/@ORM\s(.*)$/m', $property->getDocComment(), $matches);
-            if (!isset($matches[1])) {
+            if (isset($matches[1])) {
+                $property->setAccessible(true);
+                $data[$matches[1]] = $property->getValue($object);
                 continue;
             }
-            $property->setAccessible(true);
-            $data[$matches[1]] = $property->getValue($object);
+            preg_match('/@Identifier\s(.*)$/m', $property->getDocComment(), $matches);
+            if (isset($matches[1])) {
+                $property->setAccessible(true);
+                $data[$matches[1]] = $property->getValue($object);
+            }
+
         }
 
         return $data;
