@@ -139,23 +139,27 @@ abstract class AbstractRepository implements RepositoryInterface
     public function insertOnDuplicateKeyUpdate(EntityInterface $entity): bool
     {
         $data = $this->hydrator->extract($entity);
+
+        // remove null ID values
+        if (!isset($data['id'])) {
+            unset($data['id']);
+        }
+
         $columns = implode(", ", array_keys($data));
         $values = implode(", :", array_keys($data));
         $sql = 'INSERT INTO ' . $this->getTableName() . ' (' . $columns . ') VALUES (:'
             . $values . ') ON DUPLICATE KEY UPDATE ';
         foreach (array_keys($data) as $dataKey) {
-            if ($dataKey === 'id') {
-                continue;
-            }
             $sql .= $dataKey . ' = VALUES(' . $dataKey . '), ';
         }
+
         $sql = substr($sql, 0, -2);
         $dbStmt = $this->pdo->prepare($sql);
         foreach ($data as $columnName => &$value) {
             $dbStmt->bindParam(':' . $columnName, $value);
         }
         $result = $dbStmt->execute();
-        if (!$entity->getId()) {
+        if ($this->pdo->lastInsertId() != 0) {
             $this->hydrator->hydrateId($entity, $this->pdo->lastInsertId());
         }
 
