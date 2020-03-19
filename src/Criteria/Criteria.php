@@ -28,7 +28,6 @@ class Criteria
 
     public function toQuery(): string
     {
-
         $sql = '';
         if (!empty($this->filters)) {
             $sql .= ' WHERE ';
@@ -73,6 +72,7 @@ class Criteria
             $dbStmt->bindValue(':' . $fieldName, "%$value%");
         }
     }
+
     public function bindParamsToStatement(\PDOStatement $dbStmt)
     {
         foreach ($this->filters as $fieldName => $value) {
