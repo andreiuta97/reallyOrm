@@ -52,13 +52,14 @@ class Criteria
     public function toQuerySearch(): string
     {
         $sql = '';
-        if (!empty($this->filters)) {
-            $sql .= ' WHERE ';
-            foreach ($this->filters as $fieldName => $value) {
-                $sql .= $fieldName . ' LIKE :' . $fieldName;
-                if (!end($this->filters)) {
-                    $sql .= ' AND ';
-                }
+        if (empty($this->filters)) {
+            return $sql;
+        }
+        $sql .= ' WHERE ';
+        foreach ($this->filters as $fieldName => $value) {
+            $sql .= $fieldName . ' LIKE :' . $fieldName;
+            if (!end($this->filters)) {
+                $sql .= ' AND ';
             }
         }
         $sql .= ' LIMIT ' . $this->size . ' OFFSET ' . $this->from;
