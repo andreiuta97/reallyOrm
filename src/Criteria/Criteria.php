@@ -26,6 +26,13 @@ class Criteria
         $this->size = $size;
     }
 
+    public function limitOffsetToQuery(string $sql):string
+    {
+        $sql .= ' LIMIT ' . $this->size . ' OFFSET ' . $this->from;
+
+        return $sql;
+    }
+
     public function toQuery(): string
     {
         $sql = '';
@@ -44,9 +51,29 @@ class Criteria
                 $sql .= ':' . $fieldName . ' ' . $direction;
             }
         }
-        $sql .= ' LIMIT ' . $this->size . ' OFFSET ' . $this->from;
 
-        return $sql;
+        return $this->limitOffsetToQuery($sql);
+    }
+
+    public function toQuerySearch(): string
+    {
+        $sql = '';
+        if (empty($this->filters)) {
+            return $this->limitOffsetToQuery($sql);
+        }
+        $sql .= 'WHERE ';
+        $sql .= implode(' AND ', array_map(function ($filterName) {
+            return sprintf('%s LIKE %s', $filterName, ':' . $filterName);
+        }, array_keys($this->filters)));
+
+        return $this->limitOffsetToQuery($sql);
+    }
+
+    public function bindValueToStatementSearch(\PDOStatement $dbStmt)
+    {
+        foreach ($this->filters as $fieldName => $value) {
+            $dbStmt->bindValue(':' . $fieldName, "%$value%");
+        }
     }
 
     public function toQuerySearch(): string
