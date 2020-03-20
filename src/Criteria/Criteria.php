@@ -51,17 +51,10 @@ class Criteria
 
     public function toQuerySearch(): string
     {
-        $sql = '';
-        if (empty($this->filters)) {
-            return $sql;
-        }
-        $sql .= ' WHERE ';
-        foreach ($this->filters as $fieldName => $value) {
-            $sql .= $fieldName . ' LIKE :' . $fieldName;
-            if (!end($this->filters)) {
-                $sql .= ' AND ';
-            }
-        }
+        $sql = 'WHERE ';
+        $sql .= implode(' AND ', array_map(function ($filterName) {
+            return sprintf('%s LIKE %s', $filterName, ':' . $filterName);
+        }, array_keys($this->filters), $this->filters));
         $sql .= ' LIMIT ' . $this->size . ' OFFSET ' . $this->from;
 
         return $sql;
