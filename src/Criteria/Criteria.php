@@ -38,7 +38,7 @@ class Criteria
                 }
             }
         }
-        if(!empty($this->sorts)) {
+        if (!empty($this->sorts)) {
             $sql .= ' ORDER BY ';
             foreach ($this->sorts as $fieldName => $direction) {
                 $sql .= ':' . $fieldName . ' ' . $direction;
@@ -49,10 +49,33 @@ class Criteria
         return $sql;
     }
 
+    public function toQuerySearch(): string
+    {
+        $sql = '';
+        if (empty($this->filters)) {
+            return $sql;
+        }
+        $sql .= 'WHERE ';
+        $sql .= implode(' AND ', array_map(function ($filterName) {
+            return sprintf('%s LIKE %s', $filterName, ':' . $filterName);
+        }, array_keys($this->filters)));
+        $sql .= ' LIMIT ' . $this->size . ' OFFSET ' . $this->from;
+
+        return $sql;
+    }
+
+    public function bindValueToStatementSearch(\PDOStatement $dbStmt)
+    {
+        foreach ($this->filters as $fieldName => $value) {
+            $dbStmt->bindValue(':' . $fieldName, "%$value%");
+        }
+    }
+
     public function bindParamsToStatement(\PDOStatement $dbStmt)
     {
         foreach ($this->filters as $fieldName => $value) {
             $dbStmt->bindParam(':' . $fieldName, $value);
+
         }
         foreach ($this->sorts as $fieldName => $direction) {
             $dbStmt->bindParam(':' . $fieldName, $direction);
