@@ -163,6 +163,28 @@ abstract class AbstractRepository implements RepositoryInterface
     }
 
     /**
+     * @param Criteria $criteria
+     * @return array
+     */
+    public function findBySearch(Criteria $criteria): array
+    {
+        $sql = 'SELECT * FROM ' . $this->getTableName() . ' ';
+        $sql .= $criteria->toQuerySearch();
+        $dbStmt = $this->pdo->prepare($sql);
+        $criteria->bindValueToStatementSearch($dbStmt);
+        $dbStmt->execute();
+        $array = $dbStmt->fetchAll();
+        $objects = [];
+        foreach ($array as $row) {
+            $object = $this->hydrator->hydrate($this->entityName, $row);
+            $this->hydrator->hydrateId($object, $row['id']);
+            $objects[] = $object;
+        }
+
+        return $objects;
+    }
+
+    /**
      * Returns the number of objects from a table.
      *
      * @param Criteria $criteria
