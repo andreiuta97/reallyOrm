@@ -219,14 +219,14 @@ abstract class AbstractRepository implements RepositoryInterface
      */
     public function getTableName(): string
     {
-        //ReallyOrm\Test\Entity\UserTemplate
-        preg_match('/.*\\\\(.*)/', $this->entityName, $matches); // UserTemplate
-        $tableName = lcfirst($matches[1]); // userTemplate
+        $parts = explode('\\', $this->entityName);
+        $tableName = end($parts);
+        $tableName = lcfirst($tableName);
         if (ctype_lower($tableName)) {
             return $tableName;
         }
-        $pieces = preg_split('/(?=[A-Z])/', $tableName); // 0 => user; 1 => Template
-        $tableName = $pieces[0] . '_' . lcfirst($pieces[1]); // user_template
+        $pieces = preg_split('/(?=[A-Z])/', $tableName);
+        $tableName = $pieces[0] . '_' . lcfirst($pieces[1]);
 
         return $tableName;
     }
