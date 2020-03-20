@@ -100,11 +100,7 @@ abstract class AbstractRepository implements RepositoryInterface
     }
 
     /**
-     * @param array $filters
-     * @param array $sorts
-     * @param int $from
-     * @param int $size
-     *
+     * @param Criteria $criteria
      * @return array
      */
     public function findBy(Criteria $criteria): array
@@ -164,6 +160,23 @@ abstract class AbstractRepository implements RepositoryInterface
         }
 
         return $result;
+    }
+
+    /**
+     * Returns the number of objects from a table.
+     *
+     * @param Criteria $criteria
+     * @return int
+     */
+    public function getNumberOfObjects(Criteria $criteria): int
+    {
+        $sql = 'SELECT count(*) as objectsNumber FROM ' . $this->getTableName() . ' ';
+        $sql .= $criteria->toQuerySearch();
+        $dbStmt = $this->pdo->prepare($sql);
+        $criteria->bindValueToStatementSearch($dbStmt);
+        $dbStmt->execute();
+
+        return $dbStmt->fetch(\PDO::FETCH_COLUMN);
     }
 
 
