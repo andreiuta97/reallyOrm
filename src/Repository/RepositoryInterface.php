@@ -6,6 +6,7 @@ namespace ReallyOrm\Repository;
 
 use ReallyOrm\Criteria\Criteria;
 use ReallyOrm\Entity\EntityInterface;
+use ReallyOrm\SearchResult\SearchResult;
 
 /**
  * Interface RepositoryInterface.
@@ -39,7 +40,7 @@ interface RepositoryInterface
      *
      * @return EntityInterface[]
      */
-    public function findBy(Criteria $criteria): array;
+    public function findBy(Criteria $criteria): SearchResult;
 
     /**
      * Inserts new entity or updates existing entity if a duplicate error occurs.
