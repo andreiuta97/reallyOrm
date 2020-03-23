@@ -102,9 +102,9 @@ abstract class AbstractRepository implements RepositoryInterface
 
     /**
      * @param Criteria $criteria
-     * @return array
+     * @return SearchResult
      */
-    public function findBy(Criteria $criteria): array
+    public function findBy(Criteria $criteria): SearchResult
     {
         // filters  = [field_name => value]
         // sorts = [field_name => direction]
@@ -124,8 +124,11 @@ abstract class AbstractRepository implements RepositoryInterface
             $this->hydrator->hydrateId($object, $row['id']);
             $objects[] = $object;
         }
+        $searchResult = new SearchResult();
+        $searchResult->setItems($objects);
+        $searchResult->setTotalCount($this->getNumberOfObjects($criteria));
 
-        return $objects;
+        return $searchResult;
     }
 
     /**
