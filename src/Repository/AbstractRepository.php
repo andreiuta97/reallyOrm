@@ -100,11 +100,7 @@ abstract class AbstractRepository implements RepositoryInterface
     }
 
     /**
-     * @param array $filters
-     * @param array $sorts
-     * @param int $from
-     * @param int $size
-     *
+     * @param Criteria $criteria
      * @return array
      */
     public function findBy(Criteria $criteria): array
@@ -166,6 +162,45 @@ abstract class AbstractRepository implements RepositoryInterface
         return $result;
     }
 
+    /**
+     * @param Criteria $criteria
+     * @return array
+     */
+    public function findBySearch(Criteria $criteria): array
+    {
+        $sql = 'SELECT * FROM ' . $this->getTableName() . ' ';
+        $sql .= $criteria->toQuerySearch();
+        $dbStmt = $this->pdo->prepare($sql);
+        $criteria->bindValueToStatementSearch($dbStmt);
+        $dbStmt->execute();
+        $array = $dbStmt->fetchAll();
+        $objects = [];
+        foreach ($array as $row) {
+            $object = $this->hydrator->hydrate($this->entityName, $row);
+            $this->hydrator->hydrateId($object, $row['id']);
+            $objects[] = $object;
+        }
+
+        return $objects;
+    }
+
+    /**
+     * Returns the number of objects from a table.
+     *
+     * @param Criteria $criteria
+     * @return int
+     */
+    public function getNumberOfObjects(Criteria $criteria): int
+    {
+        $sql = 'SELECT count(*) as objectsNumber FROM ' . $this->getTableName() . ' ';
+        $sql .= $criteria->toQuerySearch();
+        $dbStmt = $this->pdo->prepare($sql);
+        $criteria->bindValueToStatementSearch($dbStmt);
+        $dbStmt->execute();
+
+        return $dbStmt->fetch(\PDO::FETCH_COLUMN);
+    }
+
 
     /**
      * Returns the name of the associated entity.
@@ -184,10 +219,16 @@ abstract class AbstractRepository implements RepositoryInterface
      */
     public function getTableName(): string
     {
-        //ReallyOrm\Test\Entity\User
-        preg_match('/.*\\\\(.*)/', $this->entityName, $matches);
+        $parts = explode('\\', $this->entityName);
+        $tableName = end($parts);
+        $tableName = lcfirst($tableName);
+        if (ctype_lower($tableName)) {
+            return $tableName;
+        }
+        $pieces = preg_split('/(?=[A-Z])/', $tableName);
+        $tableName = $pieces[0] . '_' . lcfirst($pieces[1]);
 
-        return strtolower($matches[1]);
+        return $tableName;
     }
 
     /**
