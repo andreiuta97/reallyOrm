@@ -7,6 +7,7 @@ use phpDocumentor\Reflection\Types\This;
 use ReallyOrm\Criteria\Criteria;
 use ReallyOrm\Entity\EntityInterface;
 use ReallyOrm\Hydrator\HydratorInterface;
+use ReallyOrm\SearchResult\SearchResult;
 
 /**
  * Class AbstractRepository.
@@ -166,7 +167,11 @@ abstract class AbstractRepository implements RepositoryInterface
      * @param Criteria $criteria
      * @return array
      */
-    public function findBySearch(Criteria $criteria): array
+    /**
+     * @param Criteria $criteria
+     * @return array
+     */
+    public function findBySearch(Criteria $criteria): SearchResult
     {
         $sql = 'SELECT * FROM ' . $this->getTableName() . ' ';
         $sql .= $criteria->toQuerySearch();
@@ -181,7 +186,11 @@ abstract class AbstractRepository implements RepositoryInterface
             $objects[] = $object;
         }
 
-        return $objects;
+        $searchResult = new SearchResult();
+        $searchResult->setItems($objects);
+        $searchResult->setTotalCount($this->getNumberOfObjects($criteria));
+
+        return $searchResult;
     }
 
     /**
@@ -193,7 +202,7 @@ abstract class AbstractRepository implements RepositoryInterface
     public function getNumberOfObjects(Criteria $criteria): int
     {
         $sql = 'SELECT count(*) as objectsNumber FROM ' . $this->getTableName() . ' ';
-        $sql .= $criteria->toQuerySearch();
+        $sql .= $criteria->toQueryCount();
         $dbStmt = $this->pdo->prepare($sql);
         $criteria->bindValueToStatementSearch($dbStmt);
         $dbStmt->execute();

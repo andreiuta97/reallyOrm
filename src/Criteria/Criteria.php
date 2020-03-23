@@ -26,6 +26,16 @@ class Criteria
         $this->size = $size;
     }
 
+    public function filtersToQuery(string $sql):string
+    {
+        $sql .= 'WHERE ';
+        $sql .= implode(' AND ', array_map(function ($filterName) {
+            return sprintf('%s LIKE %s', $filterName, ':' . $filterName);
+        }, array_keys($this->filters)));
+
+        return $sql;
+    }
+
     public function limitOffsetToQuery(string $sql):string
     {
         $sql .= ' LIMIT ' . $this->size . ' OFFSET ' . $this->from;
@@ -61,12 +71,25 @@ class Criteria
         if (empty($this->filters)) {
             return $this->limitOffsetToQuery($sql);
         }
-        $sql .= 'WHERE ';
-        $sql .= implode(' AND ', array_map(function ($filterName) {
-            return sprintf('%s LIKE %s', $filterName, ':' . $filterName);
-        }, array_keys($this->filters)));
+        $sql.=$this->filtersToQuery($sql);
 
         return $this->limitOffsetToQuery($sql);
+    }
+
+    /**
+     * Builds the WHERE clause using configured filters
+     * for a SELECT count query
+     *
+     * @return string
+     */
+    public function toQueryCount(): string
+    {
+        $sql = '';
+        if (empty($this->filters)) {
+            return $sql;
+        }
+
+        return $this->filtersToQuery($sql);
     }
 
     public function bindValueToStatementSearch(\PDOStatement $dbStmt)
