@@ -225,7 +225,13 @@ abstract class AbstractRepository implements RepositoryInterface
     }
 
     /**
-     * Returns the name of the associated table.
+     * Returns the name of the associated table from the full entity name.
+     *
+     * Examples: entityName = QuizApp\Entity\User
+     *           output: user
+     *
+     *           entityName = QuizApp\Entity\QuizTemplate
+     *           output: quiz_template
      *
      * @return string
      */
