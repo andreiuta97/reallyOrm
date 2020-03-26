@@ -56,7 +56,7 @@ class SearchResult
     /**
      * @return EntityInterface
      */
-    public function getFirstItem(): EntityInterface
+    public function getFirstItem(): ?EntityInterface
     {
         if (!$this->items || !isset($this->items[0])) {
             return null;
