@@ -3,6 +3,8 @@
 namespace ReallyOrm\SearchResult;
 
 
+use ReallyOrm\Entity\EntityInterface;
+
 class SearchResult
 {
     /**
@@ -49,5 +51,17 @@ class SearchResult
     public function getCount(): int
     {
         return $this->totalCount;
+    }
+
+    /**
+     * @return EntityInterface
+     */
+    public function getFirstItem(): EntityInterface
+    {
+        if (!$this->items) {
+            return null;
+        }
+
+        return $this->items[0];
     }
 }
