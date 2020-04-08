@@ -58,7 +58,7 @@ class Criteria
         if (!empty($this->sorts)) {
             $sql .= ' ORDER BY ';
             foreach ($this->sorts as $fieldName => $direction) {
-                $sql .= ':' . $fieldName . ' ' . $direction;
+                $sql .= $fieldName . ' ' . $direction;
             }
         }
 
