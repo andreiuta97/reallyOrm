@@ -26,8 +26,11 @@ class Criteria
         $this->size = $size;
     }
 
-    public function filtersToQuery(string $sql):string
+    public function filtersToQuery(string $sql): string
     {
+        if (empty($this->filters)) {
+            return '';
+        }
         $sql .= 'WHERE ';
         $sql .= implode(' AND ', array_map(function ($filterName) {
             return sprintf('%s LIKE %s', $filterName, ':' . $filterName);
@@ -36,7 +39,20 @@ class Criteria
         return $sql;
     }
 
-    public function limitOffsetToQuery(string $sql):string
+    public function sortsToQuery(string $sql): string
+    {
+        if (empty($this->sorts)) {
+            return '';
+        }
+        $sql .= ' ORDER BY ';
+        foreach ($this->sorts as $fieldName => $direction) {
+            $sql .= $fieldName . ' ' . $direction;
+        }
+
+        return $sql;
+    }
+
+    public function limitOffsetToQuery(string $sql): string
     {
         $sql .= ' LIMIT ' . $this->size . ' OFFSET ' . $this->from;
 
@@ -55,12 +71,7 @@ class Criteria
                 }
             }
         }
-        if (!empty($this->sorts)) {
-            $sql .= ' ORDER BY ';
-            foreach ($this->sorts as $fieldName => $direction) {
-                $sql .= $fieldName . ' ' . $direction;
-            }
-        }
+        $sql .= $this->sortsToQuery($sql);
 
         return $this->limitOffsetToQuery($sql);
     }
@@ -68,10 +79,8 @@ class Criteria
     public function toQuerySearch(): string
     {
         $sql = '';
-        if (empty($this->filters)) {
-            return $this->limitOffsetToQuery($sql);
-        }
-        $sql.=$this->filtersToQuery($sql);
+        $sql .= $this->filtersToQuery($sql);
+        $sql .= $this->sortsToQuery($sql);
 
         return $this->limitOffsetToQuery($sql);
     }
