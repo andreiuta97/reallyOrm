@@ -26,8 +26,39 @@ class Criteria
         $this->size = $size;
     }
 
-    public function filtersToQuery(string $sql):string
+    /**
+     * Creates the query string part for toQuery() containing the filters.
+     *
+     * @param string $sql
+     * @return string
+     */
+    private function filtersToQuery(string $sql): string
     {
+        if (empty($this->filters)) {
+            return '';
+        }
+        $sql .= ' WHERE ';
+        foreach ($this->filters as $fieldName => $value) {
+            $sql .= $fieldName . ' =:' . $fieldName;
+            if (!end($this->filters)) {
+                $sql .= ' AND ';
+            }
+        }
+
+        return $sql;
+    }
+
+    /**
+     * Creates the query string part for toQuerySearch() containing the filters.
+     *
+     * @param string $sql
+     * @return string
+     */
+    private function filtersToQuerySearch(string $sql): string
+    {
+        if (empty($this->filters)) {
+            return '';
+        }
         $sql .= 'WHERE ';
         $sql .= implode(' AND ', array_map(function ($filterName) {
             return sprintf('%s LIKE %s', $filterName, ':' . $filterName);
@@ -36,42 +67,62 @@ class Criteria
         return $sql;
     }
 
-    public function limitOffsetToQuery(string $sql):string
+    /**
+     * Creates the query string part containing the sorts.
+     *
+     * @param string $sql
+     * @return string
+     */
+    private function sortsToQuery(string $sql): string
+    {
+        if (empty($this->sorts)) {
+            return '';
+        }
+        $sql .= ' ORDER BY ';
+        foreach ($this->sorts as $fieldName => $direction) {
+            $sql .= $fieldName . ' ' . $direction;
+        }
+
+        return $sql;
+    }
+
+    /**
+     * Creates the query string part containing the limit and offset.
+     *
+     * @param string $sql
+     * @return string
+     */
+    public function limitOffsetToQuery(string $sql): string
     {
         $sql .= ' LIMIT ' . $this->size . ' OFFSET ' . $this->from;
 
         return $sql;
     }
 
+    /**
+     * Concatenates filters, sorts, limit and offset with the query string.
+     *
+     * @return string
+     */
     public function toQuery(): string
     {
         $sql = '';
-        if (!empty($this->filters)) {
-            $sql .= ' WHERE ';
-            foreach ($this->filters as $fieldName => $value) {
-                $sql .= $fieldName . ' =:' . $fieldName;
-                if (!end($this->filters)) {
-                    $sql .= ' AND ';
-                }
-            }
-        }
-        if (!empty($this->sorts)) {
-            $sql .= ' ORDER BY ';
-            foreach ($this->sorts as $fieldName => $direction) {
-                $sql .= $fieldName . ' ' . $direction;
-            }
-        }
+        $sql .= $this->filtersToQuery($sql);
+        $sql .= $this->sortsToQuery($sql);
 
         return $this->limitOffsetToQuery($sql);
     }
 
+    /**
+     * Concatenates the search filters and the sorts, limit and offset with the search query string.
+     *
+     * @return string
+     */
     public function toQuerySearch(): string
     {
         $sql = '';
-        if (empty($this->filters)) {
-            return $this->limitOffsetToQuery($sql);
-        }
-        $sql.=$this->filtersToQuery($sql);
+        $sql .= $this->filtersToQuerySearch($sql);
+        $sql .= $this->sortsToQuery($sql);
 
         return $this->limitOffsetToQuery($sql);
     }
@@ -92,6 +143,9 @@ class Criteria
         return $this->filtersToQuery($sql);
     }
 
+    /**
+     * @param \PDOStatement $dbStmt
+     */
     public function bindValueToStatementSearch(\PDOStatement $dbStmt)
     {
         foreach ($this->filters as $fieldName => $value) {
@@ -99,6 +153,9 @@ class Criteria
         }
     }
 
+    /**
+     * @param \PDOStatement $dbStmt
+     */
     public function bindParamsToStatement(\PDOStatement $dbStmt)
     {
         foreach ($this->filters as $fieldName => $value) {
