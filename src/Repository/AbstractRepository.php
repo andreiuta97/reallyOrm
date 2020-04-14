@@ -156,6 +156,10 @@ abstract class AbstractRepository implements RepositoryInterface
         $sql = substr($sql, 0, -2);
         $dbStmt = $this->pdo->prepare($sql);
         foreach ($data as $columnName => &$value) {
+            if (is_bool($value)) {
+                $dbStmt->bindValue(':' . $columnName, $value, PDO::PARAM_BOOL);
+                continue;
+            }
             $dbStmt->bindParam(':' . $columnName, $value);
         }
         $result = $dbStmt->execute();
